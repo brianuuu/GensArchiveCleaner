@@ -17,13 +17,14 @@
 #include "GlitterLib/GlitterMaterial.h"
 #include "GlitterLib/Material.h"
 #include "GlitterLib/Model.h"
+#include "GlitterLib/TextureOld.h"
 #include "GlitterLib/xncpminumum.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class GensArchiveCleaner; }
 QT_END_NAMESPACE
 
-// TODO: .texture, .*-anim,
+// TODO: .*-anim, read from .ar
 
 enum BaseExtension
 {
@@ -31,6 +32,7 @@ enum BaseExtension
     Base_GTM,
     Base_MATERIAL,
     Base_MODEL,
+    Base_TEXTURE,
     Base_XNCP,
 
     Base_ERROR,
@@ -44,6 +46,7 @@ inline QString getBaseExtension(BaseExtension be)
     case Base_GTM:      return ".gtm";
     case Base_MATERIAL: return ".material";
     case Base_MODEL:    return ".model";
+    case Base_TEXTURE:  return ".texture";
     case Base_XNCP:     return ".xncp";
     default:            return "";
     }
@@ -67,6 +70,7 @@ enum ResourceExtension
     Resource_DDS = 0,
     Resource_GTM,
     Resource_MATERIAL,
+    Resource_TEXTURE,
 
     Resource_ERROR,
 };
@@ -78,6 +82,7 @@ inline QString getResourceExtension(ResourceExtension be)
     case Resource_DDS:      return ".dds";
     case Resource_GTM:      return ".gtm";
     case Resource_MATERIAL: return ".material";
+    case Resource_TEXTURE:  return ".texture";
     default:                return "";
     }
 }
@@ -112,11 +117,11 @@ private slots:
 
     void watcher_directoryChanged(const QString &path);
 
-    void on_LV_Base_doubleClicked(const QModelIndex &index);
+    void on_TV_Base_doubleClicked(const QModelIndex &index);
     void base_selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void base_directoryLoaded(const QString &path);
 
-    void on_LV_Resource_doubleClicked(const QModelIndex &index);
+    void on_TV_Resource_doubleClicked(const QModelIndex &index);
     void resource_selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void resource_directoryLoaded(const QString &path);
 

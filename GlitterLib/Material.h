@@ -14,6 +14,7 @@ namespace Glitter
 		std::string name;
 		std::string folder;
 		std::vector<Texture*> textures;
+        std::vector<std::string> dotTextures;
 		std::vector<Parameter*> parameters;
 		std::string shader;
 		std::string subShader;
@@ -23,6 +24,7 @@ namespace Glitter
 		unsigned char materialFlag;
 		bool noCulling;
 		bool colorBlend;
+        bool usesDotTextureFiles;
 
 	public:
 		static const std::string layerOpaque;
@@ -39,8 +41,9 @@ namespace Glitter
 		std::string getSubShader() const;
 		std::string getExtra() const;
 		std::string getGiExtra() const;
-		std::string getLayer() const;
+        std::string getLayer() const;
 		std::vector<Texture*> getTextures() const;
+        std::vector<std::string> getDotTextures() const;
 		std::vector<Parameter*> getParameters() const;
 		Texture* getTextureByUnit(std::string unit, size_t = 0);
 		Texture* getTextureByIndex(size_t index);
@@ -51,6 +54,7 @@ namespace Glitter
 		bool hasColorBlend() const;
 		bool hasExtra() const;
 		bool hasGiExtra() const;
+        bool hasDotTextureFiles() const;
 		int getTextureUnitsSize() const;
 
 		void addParameter(Parameter* param);

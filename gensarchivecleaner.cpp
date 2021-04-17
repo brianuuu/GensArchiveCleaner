@@ -291,7 +291,7 @@ void GensArchiveCleaner::base_directoryLoaded(const QString &path)
 //---------------------------------------------------------------------------
 /// Open a file
 //---------------------------------------------------------------------------
-void GensArchiveCleaner::on_LV_Base_doubleClicked(const QModelIndex &index)
+void GensArchiveCleaner::on_TV_Base_doubleClicked(const QModelIndex &index)
 {
     QString const fullName = m_path + "/" + m_baseModel->fileName(index);
     QDesktopServices::openUrl(QUrl::fromLocalFile(fullName));
@@ -374,7 +374,7 @@ void GensArchiveCleaner::resource_directoryLoaded(const QString &path)
 //---------------------------------------------------------------------------
 /// Open a file
 //---------------------------------------------------------------------------
-void GensArchiveCleaner::on_LV_Resource_doubleClicked(const QModelIndex &index)
+void GensArchiveCleaner::on_TV_Resource_doubleClicked(const QModelIndex &index)
 {
     QString const fullName = m_path + "/" + m_resourceModel->fileName(index);
     QDesktopServices::openUrl(QUrl::fromLocalFile(fullName));
@@ -590,10 +590,21 @@ QStringList GensArchiveCleaner::GetBaseFileResources(const QString &fullName)
     case Base_MATERIAL:
     {
         Glitter::Material material(fullName.toStdString());
-        std::vector<Glitter::Texture*> const textures = material.getTextures();
-        for (Glitter::Texture* tex : textures)
+        if (material.hasDotTextureFiles())
         {
-            list << QString::fromStdString(tex->getName()) + ".dds";
+            std::vector<std::string> const dotTextures = material.getDotTextures();
+            for (std::string const& str : dotTextures)
+            {
+                list << QString::fromStdString(str) + ".texture";
+            }
+        }
+        else
+        {
+            std::vector<Glitter::Texture*> const textures = material.getTextures();
+            for (Glitter::Texture* tex : textures)
+            {
+                list << QString::fromStdString(tex->getName()) + ".dds";
+            }
         }
         break;
     }
@@ -605,6 +616,12 @@ QStringList GensArchiveCleaner::GetBaseFileResources(const QString &fullName)
         {
             list << QString::fromStdString(str) + ".material";
         }
+        break;
+    }
+    case Base_TEXTURE:
+    {
+        Glitter::TextureOld textureOld(fullName.toStdString());
+        list << QString::fromStdString(textureOld.getTexture() + ".dds");
         break;
     }
     case Base_XNCP:

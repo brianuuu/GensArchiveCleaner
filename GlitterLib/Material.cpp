@@ -14,6 +14,7 @@ namespace Glitter
 		subShader = "Common_d";
 		noCulling = false;
 		colorBlend = false;
+        usesDotTextureFiles = false;
 		extra = "";
 		giExtra = "";
 		materialFlag = 0x80;
@@ -35,6 +36,7 @@ namespace Glitter
 		giExtra = "";
 		noCulling = false;
 		colorBlend = false;
+        usesDotTextureFiles = false;
 		materialFlag = 0x80;
 
 		if (reader.valid())
@@ -104,8 +106,13 @@ namespace Glitter
 
 	std::vector<Texture*> Material::getTextures() const
 	{
-		return textures;
-	}
+        return textures;
+    }
+
+    std::vector<std::string> Material::getDotTextures() const
+    {
+        return dotTextures;
+    }
 
 	std::vector<Parameter*> Material::getParameters() const
 	{
@@ -177,8 +184,13 @@ namespace Glitter
 
 	bool Material::hasGiExtra() const
 	{
-		return giExtra.size() > 0;
-	}
+        return giExtra.size() > 0;
+    }
+
+    bool Material::hasDotTextureFiles() const
+    {
+        return usesDotTextureFiles;
+    }
 
 	int Material::getTextureUnitsSize() const
 	{
@@ -324,21 +336,37 @@ namespace Glitter
 			parameters.push_back(parameter);
 		}
 
-		textures.reserve(textureCount);
-		for (int i = 0; i < textureCount; ++i)
-		{
-			reader->gotoAddress(texsetsAddress + i * 4);
-			size_t texsetAddress = reader->readAddress();
-			reader->gotoAddress(texsetAddress);
-			std::string texset = reader->readString();
+        usesDotTextureFiles = reader->getRootNodeType() < 3;
+        if (usesDotTextureFiles)
+        {
+            // version 1,2 using .texture files
+            dotTextures.reserve(textureCount);
+            for (int i = 0; i < textureCount; ++i)
+            {
+                reader->gotoAddress(texturesAddress + i * 4);
+                size_t textureAddress = reader->readAddress();
+                reader->gotoAddress(textureAddress);
+                dotTextures.push_back(reader->readString());
+            }
+        }
+        else
+        {
+            textures.reserve(textureCount);
+            for (int i = 0; i < textureCount; ++i)
+            {
+                reader->gotoAddress(texsetsAddress + i * 4);
+                size_t texsetAddress = reader->readAddress();
+                reader->gotoAddress(texsetAddress);
+                std::string texset = reader->readString();
 
-			reader->gotoAddress(texturesAddress + i * 4);
-			size_t textureAddress = reader->readAddress();
-			reader->gotoAddress(textureAddress);
-			Texture* texture = new Texture();
-			texture->read(reader, texset);
-			textures.push_back(texture);
-		}
+                reader->gotoAddress(texturesAddress + i * 4);
+                size_t textureAddress = reader->readAddress();
+                reader->gotoAddress(textureAddress);
+                Texture* texture = new Texture();
+                texture->read(reader, texset);
+                textures.push_back(texture);
+            }
+        }
 	}
 
 	void Material::write(BinaryWriter* writer)

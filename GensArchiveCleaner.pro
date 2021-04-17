@@ -46,6 +46,7 @@ HEADERS += \
     GlitterLib/Particle.h \
     GlitterLib/Submesh.h \
     GlitterLib/Texture.h \
+    GlitterLib/TextureOld.h \
     GlitterLib/Vertex.h \
     GlitterLib/VertexFormat.h \
     GlitterLib/xncpminumum.h \
@@ -76,6 +77,7 @@ SOURCES += \
     GlitterLib/Particle.cpp \
     GlitterLib/Submesh.cpp \
     GlitterLib/Texture.cpp \
+    GlitterLib/TextureOld.cpp \
     GlitterLib/Vertex.cpp \
     GlitterLib/VertexFormat.cpp \
     GlitterLib/xncpminumum.cpp \
