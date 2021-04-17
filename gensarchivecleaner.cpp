@@ -618,10 +618,28 @@ QStringList GensArchiveCleaner::GetBaseFileResources(const QString &fullName)
         }
         break;
     }
+    case Base_PTANIM:
+    {
+        Glitter::PTAnim ptAnim(fullName.toStdString());
+        list << QString::fromStdString(ptAnim.getMaterial() + ".material");
+        std::vector<std::string> const textureNames = ptAnim.getTextures();
+        for (std::string const& str : textureNames)
+        {
+            list << QString::fromStdString(str) + ".dds";
+        }
+        break;
+    }
     case Base_TEXTURE:
     {
         Glitter::TextureOld textureOld(fullName.toStdString());
         list << QString::fromStdString(textureOld.getTexture() + ".dds");
+        break;
+    }
+    case Base_MATANIM:
+    case Base_UVANIM:
+    {
+        Glitter::UVAnim uvAnim(fullName.toStdString());
+        list << QString::fromStdString(uvAnim.getMaterial() + ".material");
         break;
     }
     case Base_XNCP:

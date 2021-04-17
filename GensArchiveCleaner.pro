@@ -42,11 +42,13 @@ HEADERS += \
     GlitterLib/MathGens.h \
     GlitterLib/Mesh.h \
     GlitterLib/Model.h \
+    GlitterLib/PTAnim.h \
     GlitterLib/Parameter.h \
     GlitterLib/Particle.h \
     GlitterLib/Submesh.h \
     GlitterLib/Texture.h \
     GlitterLib/TextureOld.h \
+    GlitterLib/UVAnim.h \
     GlitterLib/Vertex.h \
     GlitterLib/VertexFormat.h \
     GlitterLib/xncpminumum.h \
@@ -73,11 +75,13 @@ SOURCES += \
     GlitterLib/MathGens.cpp \
     GlitterLib/Mesh.cpp \
     GlitterLib/Model.cpp \
+    GlitterLib/PTAnim.cpp \
     GlitterLib/Parameter.cpp \
     GlitterLib/Particle.cpp \
     GlitterLib/Submesh.cpp \
     GlitterLib/Texture.cpp \
     GlitterLib/TextureOld.cpp \
+    GlitterLib/UVAnim.cpp \
     GlitterLib/Vertex.cpp \
     GlitterLib/VertexFormat.cpp \
     GlitterLib/xncpminumum.cpp \

@@ -17,22 +17,27 @@
 #include "GlitterLib/GlitterMaterial.h"
 #include "GlitterLib/Material.h"
 #include "GlitterLib/Model.h"
+#include "GlitterLib/PTAnim.h"
 #include "GlitterLib/TextureOld.h"
+#include "GlitterLib/UVAnim.h"
 #include "GlitterLib/xncpminumum.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class GensArchiveCleaner; }
 QT_END_NAMESPACE
 
-// TODO: .*-anim, read from .ar
+// TODO: read from .ar
 
 enum BaseExtension
 {
     Base_GTE = 0,
     Base_GTM,
     Base_MATERIAL,
+    Base_MATANIM,
     Base_MODEL,
+    Base_PTANIM,
     Base_TEXTURE,
+    Base_UVANIM,
     Base_XNCP,
 
     Base_ERROR,
@@ -45,8 +50,11 @@ inline QString getBaseExtension(BaseExtension be)
     case Base_GTE:      return ".gte";
     case Base_GTM:      return ".gtm";
     case Base_MATERIAL: return ".material";
+    case Base_MATANIM:  return ".mat-anim";
     case Base_MODEL:    return ".model";
+    case Base_PTANIM:   return ".pt-anim";
     case Base_TEXTURE:  return ".texture";
+    case Base_UVANIM:   return ".uv-anim";
     case Base_XNCP:     return ".xncp";
     default:            return "";
     }
