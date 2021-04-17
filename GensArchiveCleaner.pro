@@ -50,6 +50,7 @@ HEADERS += \
     GlitterLib/VertexFormat.h \
     GlitterLib/xncpminumum.h \
     customfilesystemmodel.h \
+    customtreeview.h \
     gensarchivecleaner.h
 
 SOURCES += \
@@ -79,6 +80,7 @@ SOURCES += \
     GlitterLib/VertexFormat.cpp \
     GlitterLib/xncpminumum.cpp \
     customfilesystemmodel.cpp \
+    customtreeview.cpp \
     gensarchivecleaner.cpp \
     main.cpp
 

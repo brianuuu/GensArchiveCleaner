@@ -41,6 +41,9 @@ GensArchiveCleaner::GensArchiveCleaner(QWidget *parent)
     m_resourceModel->setNameFilters(resourceFilter);
     m_resourceModel->setNameFilterDisables(false);
     connect(m_resourceModel, &CustomFileSystemModel::directoryLoaded, this, &GensArchiveCleaner::resource_directoryLoaded);
+
+    ui->TV_Base->header()->setSectionResizeMode(QHeaderView::Fixed);
+    ui->TV_Resource->header()->setSectionResizeMode(QHeaderView::Fixed);
 }
 
 //---------------------------------------------------------------------------
@@ -91,7 +94,7 @@ void GensArchiveCleaner::on_PB_Copy_clicked()
     int fail = 0;
 
     // Copy base files
-    QModelIndexList const list = ui->LV_Base->selectionModel()->selectedIndexes();
+    QModelIndexList const list = ui->TV_Base->selectionModel()->selectedIndexes();
     for (QModelIndex const& index : list)
     {
         QString const fileName = m_baseModel->fileName(index);
@@ -106,7 +109,7 @@ void GensArchiveCleaner::on_PB_Copy_clicked()
     }
 
     // Copy resources
-    QModelIndexList const list2 = ui->LV_Resource->selectionModel()->selectedIndexes();
+    QModelIndexList const list2 = ui->TV_Resource->selectionModel()->selectedIndexes();
     for (QModelIndex const& index : list2)
     {
         QString const fileName = m_resourceModel->fileName(index);
@@ -136,7 +139,7 @@ void GensArchiveCleaner::on_PB_Copy_clicked()
 //---------------------------------------------------------------------------
 void GensArchiveCleaner::on_PB_DeleteBase_clicked()
 {
-    QModelIndexList const list = ui->LV_Base->selectionModel()->selectedIndexes();
+    QModelIndexList const list = ui->TV_Base->selectionModel()->selectedIndexes();
     if (list.isEmpty()) return;
 
     QMessageBox::StandardButton resBtn = QMessageBox::Yes;
@@ -185,7 +188,7 @@ void GensArchiveCleaner::on_PB_Clean_clicked()
 //---------------------------------------------------------------------------
 void GensArchiveCleaner::on_PB_DeleteResource_clicked()
 {
-    QModelIndexList const list = ui->LV_Resource->selectionModel()->selectedIndexes();
+    QModelIndexList const list = ui->TV_Resource->selectionModel()->selectedIndexes();
     if (list.isEmpty()) return;
 
     QMessageBox::StandardButton resBtn = QMessageBox::Yes;
@@ -213,14 +216,14 @@ void GensArchiveCleaner::watcher_directoryChanged(const QString &path)
     {
         ui->LE_Folder->setText("");
 
-        ui->LV_Base->setModel(Q_NULLPTR);
+        ui->TV_Base->setModel(Q_NULLPTR);
         SetBaseCount(0);
         SetBaseSelected(0);
         SetBaseError(0);
         m_bases.clear();
         m_baseModel->clearList();
 
-        ui->LV_Resource->setModel(Q_NULLPTR);
+        ui->TV_Resource->setModel(Q_NULLPTR);
         SetResourceCount(0);
         SetResourceSelected(0);
         SetResourceUnused(0);
@@ -242,7 +245,7 @@ void GensArchiveCleaner::base_directoryLoaded(const QString &path)
     // Parse files
     m_bases.clear();
     m_baseModel->clearList();
-    ui->LV_Base->clearSelection();
+    ui->TV_Base->clearSelection();
     for (int i = 0; i < count; i++)
     {
         QModelIndex index = m_baseModel->index(i, 0, m_baseModelIndex);
@@ -299,7 +302,7 @@ void GensArchiveCleaner::on_LV_Base_doubleClicked(const QModelIndex &index)
 //---------------------------------------------------------------------------
 void GensArchiveCleaner::base_selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
-    QModelIndexList const list = ui->LV_Base->selectionModel()->selectedRows();
+    QModelIndexList const list = ui->TV_Base->selectionModel()->selectedRows();
     SetBaseSelected(list.size());
 
     // Retrive all resources of this base file
@@ -315,7 +318,7 @@ void GensArchiveCleaner::base_selectionChanged(const QItemSelection &selected, c
     }
 
     // Select resrouces programatically
-    QItemSelectionModel* selectionModel = ui->LV_Resource->selectionModel();
+    QItemSelectionModel* selectionModel = ui->TV_Resource->selectionModel();
     selectionModel->clearSelection();
     QModelIndex topIndex;
     QModelIndex bottomIndex;
@@ -330,8 +333,8 @@ void GensArchiveCleaner::base_selectionChanged(const QItemSelection &selected, c
     }
 
     // We scroll to bottom then top to have as many resources in view as possible
-    ui->LV_Resource->scrollTo(bottomIndex);
-    ui->LV_Resource->scrollTo(topIndex);
+    ui->TV_Resource->scrollTo(bottomIndex);
+    ui->TV_Resource->scrollTo(topIndex);
 }
 
 //---------------------------------------------------------------------------
@@ -345,7 +348,7 @@ void GensArchiveCleaner::resource_directoryLoaded(const QString &path)
     // Parse files
     m_resources.clear();
     m_resourceModel->clearList();
-    ui->LV_Resource->clearSelection();
+    ui->TV_Resource->clearSelection();
     for (int i = 0; i < count; i++)
     {
         QModelIndex index = m_resourceModel->index(i, 0, m_resourceModelIndex);
@@ -382,7 +385,7 @@ void GensArchiveCleaner::on_LV_Resource_doubleClicked(const QModelIndex &index)
 //---------------------------------------------------------------------------
 void GensArchiveCleaner::resource_selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
-    QModelIndexList const list = ui->LV_Resource->selectionModel()->selectedRows();
+    QModelIndexList const list = ui->TV_Resource->selectionModel()->selectedRows();
     SetResourceSelected(list.size());
 }
 
@@ -412,33 +415,33 @@ void GensArchiveCleaner::LoadDirectory()
     connect(m_watcher, &QFileSystemWatcher::directoryChanged, this, &GensArchiveCleaner::watcher_directoryChanged);
 
     // Set base model
-    if (!ui->LV_Base->model())
+    if (!ui->TV_Base->model())
     {
-        ui->LV_Base->setModel(m_baseModel);
-        connect(ui->LV_Base->selectionModel(), &QItemSelectionModel::selectionChanged, this, &GensArchiveCleaner::base_selectionChanged);
+        ui->TV_Base->setModel(m_baseModel);
+        connect(ui->TV_Base->selectionModel(), &QItemSelectionModel::selectionChanged, this, &GensArchiveCleaner::base_selectionChanged);
     }
     m_baseModelIndex = m_baseModel->setRootPath(dir);
-    ui->LV_Base->clearSelection();
-    ui->LV_Base->setRootIndex(m_baseModelIndex);
-    ui->LV_Base->sortByColumn(2, Qt::AscendingOrder);
-    ui->LV_Base->setColumnWidth(0,300);
-    ui->LV_Base->hideColumn(1);
-    ui->LV_Base->hideColumn(3);
+    ui->TV_Base->clearSelection();
+    ui->TV_Base->setRootIndex(m_baseModelIndex);
+    ui->TV_Base->sortByColumn(2, Qt::AscendingOrder);
+    ui->TV_Base->setColumnWidth(0,300);
+    ui->TV_Base->hideColumn(1);
+    ui->TV_Base->hideColumn(3);
     SetBaseSelected(0);
 
     // Set resource model
-    if (!ui->LV_Resource->model())
+    if (!ui->TV_Resource->model())
     {
-        ui->LV_Resource->setModel(m_resourceModel);
-        connect(ui->LV_Resource->selectionModel(), &QItemSelectionModel::selectionChanged, this, &GensArchiveCleaner::resource_selectionChanged);
+        ui->TV_Resource->setModel(m_resourceModel);
+        connect(ui->TV_Resource->selectionModel(), &QItemSelectionModel::selectionChanged, this, &GensArchiveCleaner::resource_selectionChanged);
     }
     m_resourceModelIndex = m_resourceModel->setRootPath(dir);
-    ui->LV_Resource->clearSelection();
-    ui->LV_Resource->setRootIndex(m_resourceModelIndex);
-    ui->LV_Resource->sortByColumn(2, Qt::AscendingOrder);
-    ui->LV_Resource->setColumnWidth(0,300);
-    ui->LV_Resource->hideColumn(1);
-    ui->LV_Resource->hideColumn(3);
+    ui->TV_Resource->clearSelection();
+    ui->TV_Resource->setRootIndex(m_resourceModelIndex);
+    ui->TV_Resource->sortByColumn(2, Qt::AscendingOrder);
+    ui->TV_Resource->setColumnWidth(0,300);
+    ui->TV_Resource->hideColumn(1);
+    ui->TV_Resource->hideColumn(3);
     SetResourceSelected(0);
 
     qApp->processEvents();
@@ -522,6 +525,9 @@ void GensArchiveCleaner::CheckErrorAndUnused()
     // Reset these so only when both is true then this function is called again
     m_baseParsed = false;
     m_resourceParsed = false;
+
+    ui->TV_Base->updateColumnWidth();
+    ui->TV_Resource->updateColumnWidth();
 }
 
 //---------------------------------------------------------------------------
@@ -609,7 +615,6 @@ QStringList GensArchiveCleaner::GetBaseFileResources(const QString &fullName)
         {
             list << QString::fromStdString(str);
         }
-        qDebug() << list;
         break;
     }
     case Base_ERROR: break;

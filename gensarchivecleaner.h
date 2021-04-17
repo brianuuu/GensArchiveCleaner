@@ -8,6 +8,7 @@
 #include <QFileSystemWatcher>
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QScrollBar>
 #include <QSettings>
 
 #include "customfilesystemmodel.h"

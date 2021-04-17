@@ -60,7 +60,7 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
-          <widget class="QTreeView" name="LV_Base">
+          <widget class="CustomTreeView" name="TV_Base">
            <property name="selectionMode">
             <enum>QAbstractItemView::ExtendedSelection</enum>
            </property>
@@ -75,6 +75,9 @@
            </property>
            <attribute name="headerMinimumSectionSize">
             <number>5</number>
+           </attribute>
+           <attribute name="headerStretchLastSection">
+            <bool>false</bool>
            </attribute>
           </widget>
          </item>
@@ -158,7 +161,7 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
-          <widget class="QTreeView" name="LV_Resource">
+          <widget class="CustomTreeView" name="TV_Resource">
            <property name="selectionMode">
             <enum>QAbstractItemView::ExtendedSelection</enum>
            </property>
@@ -173,6 +176,9 @@
            </property>
            <attribute name="headerMinimumSectionSize">
             <number>5</number>
+           </attribute>
+           <attribute name="headerStretchLastSection">
+            <bool>false</bool>
            </attribute>
           </widget>
          </item>
@@ -245,6 +251,13 @@
    </layout>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CustomTreeView</class>
+   <extends>QTreeView</extends>
+   <header location="global">customtreeview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
