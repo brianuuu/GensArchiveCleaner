@@ -4,42 +4,57 @@ QVariant CustomFileSystemModel::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::ForegroundRole)
     {
-        // unused has higher priority
-        if (m_unusedList.contains(index))
-        {
-            return m_unusedBrush;
-        }
-        else if (m_errorList.contains(index))
+        QString const fileName = this->fileName(index);
+        if (m_errorList.contains(fileName))
         {
             return m_errorBrush;
         }
+        else if (m_unusedList.contains(fileName))
+        {
+            return m_unusedBrush;
+        }
         else
         {
-            return QBrush(Qt::black);
+            return m_usedBrush;
         }
     }
     else if (role == Qt::ToolTipRole)
     {
-        if (m_errorList.contains(index))
+        QString const fileName = this->fileName(index);
+        QString str = "";
+        if (m_errorList.contains(fileName))
         {
-            QString str = "<font color='red'><b>Missing Resources:</b></font>";
+            str = "<font color='red'><b>Missing resources:</b></font>";
             str += "<ul>";
-            for (QString const& resource : m_errorList[index])
+            for (QString const& resource : m_errorList[fileName])
             {
                 str += "<li>" + resource + "</li>";
             }
             str += "</ul>";
+        }
+
+        if (m_usedList.contains(fileName))
+        {
+            str = "<b>Used by:</b>";
+            str += "<ul>";
+            for (QString const& base : m_usedList[fileName])
+            {
+                str += "<li>" + base + "</li>";
+            }
+            str += "</ul>";
+        }
+
+        if (m_unusedList.contains(fileName))
+        {
+            str += "<p style=\"color:rgb(30,144,255);\"><b>Potentially unused</b></p>";
+        }
+
+        if (!str.isEmpty())
+        {
             str += "<p style=\"color:rgba(0,0,0,0);font-size:1px\">" + QString::number(index.row()) + "</p>";
-            return str;
         }
-        else if (m_unusedList.contains(index))
-        {
-            return "<p style=\"color:rgb(255,99,71);\"><b>Potentially Unused</b></p>";
-        }
-        else
-        {
-            return "";
-        }
+
+        return str;
     }
 
     return QFileSystemModel::data(index, role);
@@ -49,22 +64,12 @@ bool CustomFileSystemModel::setData(const QModelIndex &index, const QVariant &va
 {
     if (role == Qt::ForegroundRole)
     {
-        if (value == m_errorBrush)
+        if (value != m_errorBrush && value != m_usedBrush && value != m_unusedBrush)
         {
-            // Nothing
-        }
-        else
-        {
-            m_errorList.remove(index);
-        }
-
-        if (value == m_unusedBrush)
-        {
-            m_unusedList.insert(index);
-        }
-        else
-        {
-            m_unusedList.remove(index);
+            QString const fileName = this->fileName(index);
+            m_errorList.remove(fileName);
+            m_usedList.remove(fileName);
+            m_unusedList.remove(fileName);
         }
 
         emit dataChanged(index, index, {Qt::ForegroundRole});
@@ -76,22 +81,30 @@ bool CustomFileSystemModel::setData(const QModelIndex &index, const QVariant &va
 
 bool CustomFileSystemModel::setError(const QModelIndex &index, const QSet<QString>& list)
 {
-    m_errorList.insert(index, list);
+    m_errorList.insert(this->fileName(index), list);
     return setData(index, m_errorBrush, Qt::ForegroundRole);
+}
+
+bool CustomFileSystemModel::setUsed(const QModelIndex &index, const QSet<QString> &list)
+{
+    m_usedList.insert(this->fileName(index), list);
+    return setData(index, m_usedBrush, Qt::ForegroundRole);
 }
 
 bool CustomFileSystemModel::setUnused(const QModelIndex &index)
 {
+    m_unusedList.insert(this->fileName(index));
     return setData(index, m_unusedBrush, Qt::ForegroundRole);
 }
 
 bool CustomFileSystemModel::setNormal(const QModelIndex &index)
 {
-    return setData(index, QBrush(Qt::black), Qt::ForegroundRole);
+    return setData(index, m_usedBrush, Qt::ForegroundRole);
 }
 
 void CustomFileSystemModel::clearList()
 {
     m_errorList.clear();
+    m_usedList.clear();
     m_unusedList.clear();
 }

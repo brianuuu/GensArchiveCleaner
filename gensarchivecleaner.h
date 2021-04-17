@@ -16,10 +16,13 @@
 #include "GlitterLib/GlitterMaterial.h"
 #include "GlitterLib/Material.h"
 #include "GlitterLib/Model.h"
+#include "GlitterLib/xncpminumum.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class GensArchiveCleaner; }
 QT_END_NAMESPACE
+
+// TODO: .texture, .*-anim,
 
 enum BaseExtension
 {
@@ -27,6 +30,7 @@ enum BaseExtension
     Base_GTM,
     Base_MATERIAL,
     Base_MODEL,
+    Base_XNCP,
 
     Base_ERROR,
 };
@@ -39,6 +43,7 @@ inline QString getBaseExtension(BaseExtension be)
     case Base_GTM:      return ".gtm";
     case Base_MATERIAL: return ".material";
     case Base_MODEL:    return ".model";
+    case Base_XNCP:     return ".xncp";
     default:            return "";
     }
 }
@@ -117,6 +122,7 @@ private slots:
 private:
     void LoadDirectory();
     void CheckErrorAndUnused();
+    bool IsResourceUnused(QString const& baseName);
     QStringList GetBaseFileResources(QString const& fullName);
 
     bool MoveToTrash(QString const& file);
@@ -150,8 +156,17 @@ private:
             , m_unused(unused)
         {}
 
+        void addBases(QStringList const& list)
+        {
+            for (QString const& str : list)
+            {
+                m_bases.insert(str);
+            }
+        }
+
         ResourceExtension m_type;
-        bool m_unused;
+        QSet<QString> m_bases;
+        bool m_unused; // need this since its bases can be unused too
     };
 
     struct Base

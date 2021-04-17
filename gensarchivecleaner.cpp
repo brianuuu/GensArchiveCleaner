@@ -252,7 +252,7 @@ void GensArchiveCleaner::base_directoryLoaded(const QString &path)
         BaseExtension be = getBaseExtensionEnum(fileName);
         if (be == Base_ERROR) continue;
 
-        //qDebug() << "Reading base file" << fileName;
+        qDebug() << "Reading base file" << fileName;
         Base base(be, GetBaseFileResources(fullName));
         m_bases.insert(fileName, base);
     }
@@ -299,7 +299,7 @@ void GensArchiveCleaner::on_LV_Base_doubleClicked(const QModelIndex &index)
 //---------------------------------------------------------------------------
 void GensArchiveCleaner::base_selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
-    QModelIndexList const list = ui->LV_Base->selectionModel()->selectedIndexes();
+    QModelIndexList const list = ui->LV_Base->selectionModel()->selectedRows();
     SetBaseSelected(list.size());
 
     // Retrive all resources of this base file
@@ -324,7 +324,7 @@ void GensArchiveCleaner::base_selectionChanged(const QItemSelection &selected, c
         QModelIndex index = m_resourceModel->index(m_path + "/" + resource);
         Q_ASSERT(m_resources.contains(resource) && index.isValid());
 
-        selectionModel->select(index, QItemSelectionModel::Select);
+        selectionModel->select(index, QItemSelectionModel::Select | QItemSelectionModel::Rows);
         if (!topIndex.isValid() || index < topIndex) topIndex = index;
         if (!bottomIndex.isValid() || bottomIndex < index) bottomIndex = index;
     }
@@ -382,7 +382,7 @@ void GensArchiveCleaner::on_LV_Resource_doubleClicked(const QModelIndex &index)
 //---------------------------------------------------------------------------
 void GensArchiveCleaner::resource_selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
-    QModelIndexList const list = ui->LV_Resource->selectionModel()->selectedIndexes();
+    QModelIndexList const list = ui->LV_Resource->selectionModel()->selectedRows();
     SetResourceSelected(list.size());
 }
 
@@ -420,6 +420,10 @@ void GensArchiveCleaner::LoadDirectory()
     m_baseModelIndex = m_baseModel->setRootPath(dir);
     ui->LV_Base->clearSelection();
     ui->LV_Base->setRootIndex(m_baseModelIndex);
+    ui->LV_Base->sortByColumn(2, Qt::AscendingOrder);
+    ui->LV_Base->setColumnWidth(0,300);
+    ui->LV_Base->hideColumn(1);
+    ui->LV_Base->hideColumn(3);
     SetBaseSelected(0);
 
     // Set resource model
@@ -431,6 +435,10 @@ void GensArchiveCleaner::LoadDirectory()
     m_resourceModelIndex = m_resourceModel->setRootPath(dir);
     ui->LV_Resource->clearSelection();
     ui->LV_Resource->setRootIndex(m_resourceModelIndex);
+    ui->LV_Resource->sortByColumn(2, Qt::AscendingOrder);
+    ui->LV_Resource->setColumnWidth(0,300);
+    ui->LV_Resource->hideColumn(1);
+    ui->LV_Resource->hideColumn(3);
     SetResourceSelected(0);
 
     qApp->processEvents();
@@ -443,8 +451,6 @@ void GensArchiveCleaner::LoadDirectory()
 //---------------------------------------------------------------------------
 void GensArchiveCleaner::CheckErrorAndUnused()
 {
-    QMap<QString, QSet<QString>> used;
-
     // Check if there are any missing resources
     int errorCount = 0;
     for (BaseIter iter = m_bases.begin(); iter != m_bases.end(); iter++)
@@ -465,7 +471,7 @@ void GensArchiveCleaner::CheckErrorAndUnused()
             }
             else
             {
-                used[resource].insert(iter.key());
+                m_resources[resource].addBases({iter.key()});
             }
         }
 
@@ -496,46 +502,19 @@ void GensArchiveCleaner::CheckErrorAndUnused()
         QModelIndex index = m_resourceModel->index(m_path + "/" + iter.key());
         Q_ASSERT(index.isValid());
 
-        if (!used.contains(iter.key()))
+        // Recusively check if parent bases are not used
+        Resource& resource = iter.value();
+        if (IsResourceUnused(iter.key()))
         {
-            Resource& resource = iter.value();
-            resource.m_unused = true;
             unusedCount++;
+            resource.m_unused = true;
             m_resourceModel->setUnused(index);
         }
-        else
-        {
-            m_resourceModel->setNormal(index);
-        }
-    }
 
-    // If resource is also a base file, mark their resources unused too
-    for (ResourceIter iter = m_resources.begin(); iter != m_resources.end(); iter++)
-    {
-        QString const& baseName = iter.key();
-        Resource const& baseResource = iter.value();
-        if (baseResource.m_unused && m_bases.contains(baseName))
+        // Yes, resource can be used and unused at the same time
+        if (!resource.m_bases.isEmpty())
         {
-            for (QString const& resource : m_bases[baseName].m_resources)
-            {
-                // Resource of this base is of course used by this base
-                // but we need to check if its only used by this base only
-                Q_ASSERT(used.contains(resource));
-                if (used[resource].size() == 1)
-                {
-                    QModelIndex index = m_resourceModel->index(m_path + "/" + resource);
-                    Q_ASSERT(index.isValid());
-                    Q_ASSERT(m_resources.contains(resource));
-                    m_resources[resource].m_unused = true;
-                    unusedCount++;
-                    m_resourceModel->setUnused(index);
-                }
-            }
-
-            // Set base file color to unused too
-            QModelIndex index = m_baseModel->index(m_path + "/" + baseName);
-            Q_ASSERT(index.isValid());
-            m_baseModel->setUnused(index);
+            m_resourceModel->setUsed(index, resource.m_bases);
         }
     }
     SetResourceUnused(unusedCount);
@@ -543,6 +522,37 @@ void GensArchiveCleaner::CheckErrorAndUnused()
     // Reset these so only when both is true then this function is called again
     m_baseParsed = false;
     m_resourceParsed = false;
+}
+
+//---------------------------------------------------------------------------
+/// Recursively check if resource is not used by any base, until the base is not a resource
+//---------------------------------------------------------------------------
+bool GensArchiveCleaner::IsResourceUnused(const QString &resourceName)
+{
+    if (m_resources.contains(resourceName))
+    {
+        // If base is also a resource (.material, .gtm etc.), check its bases too
+        bool allBasesUnused = true;
+        for (QString const& baseName : m_resources[resourceName].m_bases)
+        {
+            bool baseUnused = IsResourceUnused(baseName);
+            allBasesUnused &= baseUnused;
+
+            if (baseUnused)
+            {
+                // Set base file color to unused too
+                QModelIndex index = m_baseModel->index(m_path + "/" + baseName);
+                Q_ASSERT(index.isValid());
+                m_baseModel->setUnused(index);
+            }
+        }
+        return allBasesUnused;
+    }
+    else
+    {
+        // This base is not a resource
+        return false;
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -589,6 +599,17 @@ QStringList GensArchiveCleaner::GetBaseFileResources(const QString &fullName)
         {
             list << QString::fromStdString(str) + ".material";
         }
+        break;
+    }
+    case Base_XNCP:
+    {
+        Glitter::XNCPMinumum xncp(fullName.toStdString());
+        std::vector<std::string> const textureNames = xncp.getTextures();
+        for (std::string const& str : textureNames)
+        {
+            list << QString::fromStdString(str);
+        }
+        qDebug() << list;
         break;
     }
     case Base_ERROR: break;
@@ -677,7 +698,7 @@ void GensArchiveCleaner::SetResourceUnused(int count)
     }
     else
     {
-        ui->L_ResourceUnused->setText("<p style=\"color:coral;\">" + QString::number(count) + " potentially unused</p>");
+        ui->L_ResourceUnused->setText("<p style=\"color:dodgerblue;\">" + QString::number(count) + " potentially unused</p>");
     }
     ui->PB_Clean->setEnabled(count > 0);
 }

@@ -48,6 +48,7 @@ HEADERS += \
     GlitterLib/Texture.h \
     GlitterLib/Vertex.h \
     GlitterLib/VertexFormat.h \
+    GlitterLib/xncpminumum.h \
     customfilesystemmodel.h \
     gensarchivecleaner.h
 
@@ -76,6 +77,7 @@ SOURCES += \
     GlitterLib/Texture.cpp \
     GlitterLib/Vertex.cpp \
     GlitterLib/VertexFormat.cpp \
+    GlitterLib/xncpminumum.cpp \
     customfilesystemmodel.cpp \
     gensarchivecleaner.cpp \
     main.cpp
