@@ -10,6 +10,7 @@ namespace Glitter
 		name = "";
 		filename = "";
 		terrainMode = false;
+        useTextureSet = false;
 	}
 
 	Model::Model(std::string filename)
@@ -21,6 +22,7 @@ namespace Glitter
 		name = File::getFileNameWithoutExtension(filename);
 
 		terrainMode = File::getFileExtension(filename) == TERRAIN_MODEL_FORAMT;
+        useTextureSet = false;
 
 		if (reader.valid())
 		{
@@ -72,8 +74,16 @@ namespace Glitter
 
 		if (reader->getRootNodeType() != MODEL_ROOT_DYNAMIC_GENERATIONS)
 		{
-			//printf(std::string(filename + " is not a genrations model. aborting.\n").c_str());
-			//return;
+            // assuming this is using old texture set (this is very HACK)
+            useTextureSet = true;
+            reader->gotoAddress(0x1C);
+            size_t addressToAddress = reader->readAddress() + 0x4;
+            reader->gotoAddress(addressToAddress);
+            size_t textureSetAddress = reader->readAddress();
+            reader->gotoAddress(textureSetAddress);
+            textureSet = reader->readString();
+
+            return;
 		}
 
 		size_t headerAddress = reader->getCurrentAddress();
@@ -267,8 +277,13 @@ namespace Glitter
 			}
 		}
 
-		return allMaterialNames;
-	}
+        return allMaterialNames;
+    }
+
+    std::string Model::getTextureSet()
+    {
+        return textureSet;
+    }
 
 	std::vector<unsigned int> Model::getMaterialMappings(std::list<std::string>& materialNames)
 	{
@@ -339,8 +354,13 @@ namespace Glitter
 
 	std::string Model::getFilename()
 	{
-		return filename;
-	}
+        return filename;
+    }
+
+    bool Model::getUseTextureSet()
+    {
+        return useTextureSet;
+    }
 
 	void Model::addMesh(Mesh* mesh)
 	{

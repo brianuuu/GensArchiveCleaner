@@ -19,6 +19,7 @@
 #include "GlitterLib/Model.h"
 #include "GlitterLib/PTAnim.h"
 #include "GlitterLib/TextureOld.h"
+#include "GlitterLib/TextureSet.h"
 #include "GlitterLib/UVAnim.h"
 #include "GlitterLib/xncpminumum.h"
 
@@ -36,6 +37,7 @@ enum BaseExtension
     Base_MATANIM,
     Base_MODEL,
     Base_PTANIM,
+    Base_TEXSET,
     Base_TEXTURE,
     Base_UVANIM,
     Base_XNCP,
@@ -53,6 +55,7 @@ inline QString getBaseExtension(BaseExtension be)
     case Base_MATANIM:  return ".mat-anim";
     case Base_MODEL:    return ".model";
     case Base_PTANIM:   return ".pt-anim";
+    case Base_TEXSET:   return ".texset";
     case Base_TEXTURE:  return ".texture";
     case Base_UVANIM:   return ".uv-anim";
     case Base_XNCP:     return ".xncp";
@@ -78,6 +81,7 @@ enum ResourceExtension
     Resource_DDS = 0,
     Resource_GTM,
     Resource_MATERIAL,
+    Resource_TEXSET,
     Resource_TEXTURE,
 
     Resource_ERROR,
@@ -90,6 +94,7 @@ inline QString getResourceExtension(ResourceExtension be)
     case Resource_DDS:      return ".dds";
     case Resource_GTM:      return ".gtm";
     case Resource_MATERIAL: return ".material";
+    case Resource_TEXSET:   return ".texset";
     case Resource_TEXTURE:  return ".texture";
     default:                return "";
     }
@@ -137,6 +142,7 @@ private:
     void LoadDirectory();
     void CheckErrorAndUnused();
     bool IsResourceUnused(QString const& baseName);
+    void GetChildResources(QString const& baseName, QStringList& resourceList);
     QStringList GetBaseFileResources(QString const& fullName);
 
     bool MoveToTrash(QString const& file);

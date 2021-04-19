@@ -94,7 +94,7 @@ void GensArchiveCleaner::on_PB_Copy_clicked()
     int fail = 0;
 
     // Copy base files
-    QModelIndexList const list = ui->TV_Base->selectionModel()->selectedIndexes();
+    QModelIndexList const list = ui->TV_Base->selectionModel()->selectedRows();
     for (QModelIndex const& index : list)
     {
         QString const fileName = m_baseModel->fileName(index);
@@ -109,7 +109,7 @@ void GensArchiveCleaner::on_PB_Copy_clicked()
     }
 
     // Copy resources
-    QModelIndexList const list2 = ui->TV_Resource->selectionModel()->selectedIndexes();
+    QModelIndexList const list2 = ui->TV_Resource->selectionModel()->selectedRows();
     for (QModelIndex const& index : list2)
     {
         QString const fileName = m_resourceModel->fileName(index);
@@ -139,7 +139,7 @@ void GensArchiveCleaner::on_PB_Copy_clicked()
 //---------------------------------------------------------------------------
 void GensArchiveCleaner::on_PB_DeleteBase_clicked()
 {
-    QModelIndexList const list = ui->TV_Base->selectionModel()->selectedIndexes();
+    QModelIndexList const list = ui->TV_Base->selectionModel()->selectedRows();
     if (list.isEmpty()) return;
 
     QMessageBox::StandardButton resBtn = QMessageBox::Yes;
@@ -188,7 +188,7 @@ void GensArchiveCleaner::on_PB_Clean_clicked()
 //---------------------------------------------------------------------------
 void GensArchiveCleaner::on_PB_DeleteResource_clicked()
 {
-    QModelIndexList const list = ui->TV_Resource->selectionModel()->selectedIndexes();
+    QModelIndexList const list = ui->TV_Resource->selectionModel()->selectedRows();
     if (list.isEmpty()) return;
 
     QMessageBox::StandardButton resBtn = QMessageBox::Yes;
@@ -261,20 +261,11 @@ void GensArchiveCleaner::base_directoryLoaded(const QString &path)
     }
 
     // If resource is also a base file, add their resources to the root too
-    for (Base& base : m_bases)
+    for (BaseIter iter = m_bases.begin(); iter != m_bases.end(); iter++)
     {
         QStringList additionalList;
-        for (QString const& resource : base.m_resources)
-        {
-            if (m_bases.contains(resource))
-            {
-                for (QString const& additionalResource : m_bases[resource].m_resources)
-                {
-                    additionalList.append(additionalResource);
-                }
-            }
-        }
-        base.addResources(additionalList);
+        GetChildResources(iter.key(), additionalList);
+        iter.value().addResources(additionalList);
         //qDebug() << additionalList;
     }
 
@@ -562,6 +553,22 @@ bool GensArchiveCleaner::IsResourceUnused(const QString &resourceName)
 }
 
 //---------------------------------------------------------------------------
+/// Recursively get a list of resources a base file uses (.model -> .texset -> .texture -> .dds etc.)
+//---------------------------------------------------------------------------
+void GensArchiveCleaner::GetChildResources(QString const& baseName, QStringList &resourceList)
+{
+    // If resource is also a base file, add their resources to the root too
+    if (m_bases.contains(baseName))
+    {
+        for (QString const& additionalResource : m_bases[baseName].m_resources)
+        {
+            resourceList.append(additionalResource);
+            GetChildResources(additionalResource, resourceList);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------
 /// Get list of resource names of a base file
 //---------------------------------------------------------------------------
 QStringList GensArchiveCleaner::GetBaseFileResources(const QString &fullName)
@@ -611,10 +618,20 @@ QStringList GensArchiveCleaner::GetBaseFileResources(const QString &fullName)
     case Base_MODEL:
     {
         Glitter::Model model(fullName.toStdString());
-        std::list<std::string> const materialNames = model.getMaterialNames();
-        for (std::string const& str : materialNames)
+        if (model.getUseTextureSet())
         {
-            list << QString::fromStdString(str) + ".material";
+            // name is both used on .texset and .material??
+            QString name = QString::fromStdString(model.getTextureSet());
+            list << name + ".material";
+            list << name + ".texset";
+        }
+        else
+        {
+            std::list<std::string> const materialNames = model.getMaterialNames();
+            for (std::string const& str : materialNames)
+            {
+                list << QString::fromStdString(str) + ".material";
+            }
         }
         break;
     }
@@ -626,6 +643,16 @@ QStringList GensArchiveCleaner::GetBaseFileResources(const QString &fullName)
         for (std::string const& str : textureNames)
         {
             list << QString::fromStdString(str) + ".dds";
+        }
+        break;
+    }
+    case Base_TEXSET:
+    {
+        Glitter::TextureSet textureSet(fullName.toStdString());
+        std::vector<std::string> const dotTextures = textureSet.getDotTextures();
+        for (std::string const& str : dotTextures)
+        {
+            list << QString::fromStdString(str) + ".texture";
         }
         break;
     }

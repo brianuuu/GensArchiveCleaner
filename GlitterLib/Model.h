@@ -10,12 +10,15 @@ namespace Glitter
 	{
 	private:
 		std::vector<Mesh*> meshes;
-		std::vector<Bone*> bones;
+        std::vector<Bone*> bones;
 		std::string name;
 		std::string filename;
+        bool useTextureSet;
+        std::string textureSet;
 		unsigned int modelFlag;
 		bool terrainMode;
 		AABB globalAABB;
+
 	public:
 		Model();
 		Model(std::string filename);
@@ -27,9 +30,11 @@ namespace Glitter
 		AABB getAABB();
 		std::string getName();
 		std::string getFilename();
+        bool getUseTextureSet();
 		std::list<Vertex*> getVertexList();
 		std::list<unsigned int> getFacesList();
 		std::list<std::string> getMaterialNames();
+        std::string getTextureSet();
 		std::vector<unsigned int> getMaterialMappings(std::list<std::string>& materialNames);
 		unsigned int getEstimatedMemorySize();
 		int getBoneIndexByName(std::string &name);

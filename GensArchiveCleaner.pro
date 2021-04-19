@@ -48,6 +48,7 @@ HEADERS += \
     GlitterLib/Submesh.h \
     GlitterLib/Texture.h \
     GlitterLib/TextureOld.h \
+    GlitterLib/TextureSet.h \
     GlitterLib/UVAnim.h \
     GlitterLib/Vertex.h \
     GlitterLib/VertexFormat.h \
@@ -81,6 +82,7 @@ SOURCES += \
     GlitterLib/Submesh.cpp \
     GlitterLib/Texture.cpp \
     GlitterLib/TextureOld.cpp \
+    GlitterLib/TextureSet.cpp \
     GlitterLib/UVAnim.cpp \
     GlitterLib/Vertex.cpp \
     GlitterLib/VertexFormat.cpp \
