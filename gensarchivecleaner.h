@@ -139,6 +139,7 @@ private slots:
     void resource_directoryLoaded(const QString &path);
 
 private:
+    void Clear();
     void LoadDirectory();
     void CheckErrorAndUnused();
     bool IsResourceUnused(QString const& baseName);

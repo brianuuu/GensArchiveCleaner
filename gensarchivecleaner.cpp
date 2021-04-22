@@ -152,6 +152,9 @@ void GensArchiveCleaner::on_PB_DeleteBase_clicked()
         QString const fullName = m_path + "/" + m_baseModel->fileName(index);
         MoveToTrash(fullName);
     }
+
+    Clear();
+    LoadDirectory();
 }
 
 //---------------------------------------------------------------------------
@@ -181,6 +184,9 @@ void GensArchiveCleaner::on_PB_Clean_clicked()
         QString const fullName = m_path + "/" + file;
         MoveToTrash(fullName);
     }
+
+    Clear();
+    LoadDirectory();
 }
 
 //---------------------------------------------------------------------------
@@ -201,6 +207,9 @@ void GensArchiveCleaner::on_PB_DeleteResource_clicked()
         QString const fullName = m_path + "/" + m_resourceModel->fileName(index);
         MoveToTrash(fullName);
     }
+
+    Clear();
+    LoadDirectory();
 }
 
 //---------------------------------------------------------------------------
@@ -215,21 +224,7 @@ void GensArchiveCleaner::watcher_directoryChanged(const QString &path)
     if (!testDir.exists())
     {
         ui->LE_Folder->setText("");
-
-        ui->TV_Base->setModel(Q_NULLPTR);
-        SetBaseCount(0);
-        SetBaseSelected(0);
-        SetBaseError(0);
-        m_bases.clear();
-        m_baseModel->clearList();
-
-        ui->TV_Resource->setModel(Q_NULLPTR);
-        SetResourceCount(0);
-        SetResourceSelected(0);
-        SetResourceUnused(0);
-        m_resources.clear();
-        m_resourceModel->clearList();
-
+        Clear();
         QMessageBox::critical(this, "Error", "Directory has been removed!", QMessageBox::Ok);
     }
 }
@@ -360,6 +355,28 @@ void GensArchiveCleaner::resource_directoryLoaded(const QString &path)
     }
 
     qDebug() << m_resources.count() << "resources parsed";
+}
+
+//---------------------------------------------------------------------------
+/// Reset
+//---------------------------------------------------------------------------
+void GensArchiveCleaner::Clear()
+{
+    ui->TV_Base->setModel(Q_NULLPTR);
+    SetBaseCount(0);
+    SetBaseSelected(0);
+    SetBaseError(0);
+    m_bases.clear();
+    m_baseModel->clearList();
+    ui->TV_Base->clearSelection();
+
+    ui->TV_Resource->setModel(Q_NULLPTR);
+    SetResourceCount(0);
+    SetResourceSelected(0);
+    SetResourceUnused(0);
+    m_resources.clear();
+    m_resourceModel->clearList();
+    ui->TV_Resource->clearSelection();
 }
 
 //---------------------------------------------------------------------------
