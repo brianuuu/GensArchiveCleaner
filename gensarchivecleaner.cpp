@@ -90,43 +90,83 @@ void GensArchiveCleaner::on_PB_Copy_clicked()
     if (dir == Q_NULLPTR) return;
     m_pathCopy = dir;
 
-    int success = 0;
-    int fail = 0;
+    // Same directory?
+    if (m_path == m_pathCopy)
+    {
+        QMessageBox::critical(this, "Copy", "Cannot copy to the same directory!", QMessageBox::Ok);
+        return;
+    }
 
-    // Copy base files
+    // Get list of files
+    QStringList fileNames;
     QModelIndexList const list = ui->TV_Base->selectionModel()->selectedRows();
     for (QModelIndex const& index : list)
     {
-        QString const fileName = m_baseModel->fileName(index);
-        if (QFile::copy(m_path + "/" + fileName, m_pathCopy + "/" + fileName))
-        {
-            success++;
-        }
-        else
-        {
-            fail++;
-        }
+        fileNames << m_baseModel->fileName(index);
     }
-
-    // Copy resources
     QModelIndexList const list2 = ui->TV_Resource->selectionModel()->selectedRows();
     for (QModelIndex const& index : list2)
     {
-        QString const fileName = m_resourceModel->fileName(index);
+        fileNames << m_resourceModel->fileName(index);
+    }
+
+    // Copy base files
+    int success = 0;
+    int skipped = 0;
+    bool replaceAll = false;
+    bool skipAll = false;
+    for (QString const& fileName : fileNames)
+    {
+        // Replace?
+        if (QFile::exists(m_pathCopy + "/" + fileName))
+        {
+            if (replaceAll)
+            {
+                QFile::remove(m_pathCopy + "/" + fileName);
+            }
+            else if (!skipAll)
+            {
+                QMessageBox msgBox;
+                msgBox.setWindowTitle("Copy");
+                msgBox.setIcon(QMessageBox::Question);
+                msgBox.setText(fileName + " already exist, what do you want to do?");
+                QAbstractButton* pButtonReplace = msgBox.addButton("Replace", QMessageBox::YesRole);
+                QAbstractButton* pButtonReplaceAll = msgBox.addButton("Replace All", QMessageBox::YesRole);
+                QAbstractButton* pButtonSkip = msgBox.addButton("Skip", QMessageBox::YesRole);
+                QAbstractButton* pButtonSkipAll = msgBox.addButton("Skip All", QMessageBox::YesRole);
+                msgBox.exec();
+
+                QAbstractButton* clickedButton = msgBox.clickedButton();
+                if (clickedButton == pButtonReplaceAll)
+                {
+                    replaceAll = true;
+                }
+                else if (clickedButton == pButtonSkipAll)
+                {
+                    skipAll = true;
+                }
+
+                if (replaceAll || clickedButton == pButtonReplace)
+                {
+                    QFile::remove(m_pathCopy + "/" + fileName);
+                }
+            }
+        }
+
         if (QFile::copy(m_path + "/" + fileName, m_pathCopy + "/" + fileName))
         {
             success++;
         }
         else
         {
-            fail++;
+            skipped++;
         }
     }
 
     QString const copiedString = QString::number(success) + " files copied";
-    if (fail > 0)
+    if (skipped > 0)
     {
-        QMessageBox::warning(this, "Copy", copiedString + ", " + QString::number(fail) + " failed", QMessageBox::Ok);
+        QMessageBox::warning(this, "Copy", copiedString + ", " + QString::number(skipped) + " skipped", QMessageBox::Ok);
     }
     else
     {
